@@ -64,7 +64,7 @@ pub async fn create_state(
             .build(),
     );
 
-    let rate_limiter = RateLimiterStore::new(redis_client, 1000);
+    let rate_limiter = RateLimiterStore::new(redis_client.clone(), 1000);
 
     Ok(AppState {
         pool,
