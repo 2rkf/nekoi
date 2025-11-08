@@ -16,6 +16,7 @@ use axum::{
 };
 use dotenv::dotenv;
 use jsonwebtoken::{Validation, decode};
+use redis::Client as RedisClient;
 use sqlx::MySqlPool;
 use std::env;
 use std::net::SocketAddr;
@@ -25,7 +26,7 @@ use tower_http::cors::{Any, CorsLayer};
 use crate::app_state::create_state;
 use crate::handlers::images::get_random_image;
 use crate::handlers::{
-    me::get_me, user_authorise::authorise_user, user_fetch::fetch_user,
+    me::get_me, ping::ping, user_authorise::authorise_user, user_fetch::fetch_user,
     user_register::register_user, user_update::update_user,
 };
 use crate::middlewares::logging::log_requests;
@@ -45,7 +46,10 @@ async fn main() {
 
     let db_url =
         env::var("DATABASE_URL").unwrap_or_else(|_| "mysql://root@localhost/nekoi".into());
+    let redis_url =
+        env::var("REDIS_URL").expect("Missing 'REDIS_URL'");
     let pool = MySqlPool::connect(&db_url).await.unwrap();
+    let redis_client = RedisClient::open(redis_url).expect("Invalid Redis URL");
     let port: u16 = env::var("PORT")
         .unwrap_or("3030".into())
         .parse()
@@ -75,6 +79,7 @@ async fn main() {
         .allow_headers(Any);
 
     let app = Router::new()
+        .route("/api/ping", get(ping))
         .route("/api/v1/{content_type}/{category}", get(get_random_image))
         .route(
             "/api/v1/{content_type}/{category}",

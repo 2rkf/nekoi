@@ -24,9 +24,7 @@ pub struct RateLimitStatus {
 
 impl RateLimiterStore {
     /// Creates a new `RateLimiterStore` with the specified requests per day limit.
-    pub fn new(redis_url: &str, request_per_day: u32) -> Self {
-        let redis_client = RedisClient::open(redis_url).expect("Invalid Redis URL.");
-
+    pub fn new(redis_client: RedisClient, request_per_day: u32) -> Self {
         Self {
             redis_client,
             request_per_day,

@@ -7,6 +7,7 @@ use moka::future::Cache;
 use sqlx::MySqlPool;
 use std::env;
 use std::sync::Arc;
+use redis::Client as RedisClient;
 
 use crate::middlewares::rate_limit::RateLimiterStore;
 use crate::services::image_service::ImageService;
@@ -15,6 +16,7 @@ use crate::services::image_service::ImageService;
 #[derive(Clone)]
 pub struct AppState {
     pub pool: MySqlPool,
+    pub redis_client: RedisClient,
     pub cache: Arc<Cache<String, Bytes>>,
     pub image_service: Arc<ImageService>,
     pub rate_limiter: RateLimiterStore,
@@ -26,7 +28,7 @@ pub struct AppState {
 pub async fn create_state(
     pool: MySqlPool,
     base_url: String,
-    redis_url: &str,
+    redis_client: RedisClient,
     bucket: String,
     access_key_id: String,
     secret_access_key: String,
@@ -62,10 +64,11 @@ pub async fn create_state(
             .build(),
     );
 
-    let rate_limiter = RateLimiterStore::new(redis_url, 1000);
+    let rate_limiter = RateLimiterStore::new(redis_client, 1000);
 
     Ok(AppState {
         pool,
+        redis_client,
         cache,
         image_service,
         rate_limiter,
