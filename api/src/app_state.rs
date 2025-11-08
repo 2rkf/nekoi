@@ -27,8 +27,8 @@ pub struct AppState {
 /// Creates a new shared AppState.
 pub async fn create_state(
     pool: MySqlPool,
-    base_url: String,
     redis_client: RedisClient,
+    base_url: String,
     bucket: String,
     access_key_id: String,
     secret_access_key: String,

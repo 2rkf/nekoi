@@ -12,10 +12,12 @@ pub async fn ping(
         .map(|_| true)
         .unwrap_or(false);
 
-    let mut redis_conn = state.redis_client.get_connection().unwrap();
-    let redis_status = match redis_conn.ping() {
-        Ok(_) => true,
-        Err(_) => false,
+    let mut redis_conn = state.redis_client.get_multiplexed_async_connection().await;
+    let redis_status = if let Ok(ref mut conn) = redis_conn {
+        let pong: Result<String, _> = conn.ping().await;
+        pong.map(|_| true).unwrap_or(false)
+    } else {
+        false
     };
 
     if mysql_status && redis_status {
