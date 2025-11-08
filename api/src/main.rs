@@ -44,10 +44,8 @@ pub static KEYS: LazyLock<Keys> = LazyLock::new(|| {
 async fn main() {
     dotenv().ok();
 
-    let db_url =
-        env::var("DATABASE_URL").unwrap_or_else(|_| "mysql://root@localhost/nekoi".into());
-    let redis_url =
-        env::var("REDIS_URL").expect("Missing 'REDIS_URL'");
+    let db_url = env::var("DATABASE_URL").unwrap_or_else(|_| "mysql://root@localhost/nekoi".into());
+    let redis_url = env::var("REDIS_URL").unwrap_or_else(|_| "redis://127.0.0.1/".into());
     let pool = MySqlPool::connect(&db_url).await.unwrap();
     let redis_client = RedisClient::open(redis_url).expect("Invalid Redis URL");
     let port: u16 = env::var("PORT")
@@ -55,7 +53,6 @@ async fn main() {
         .parse()
         .expect("Missing 'PORT'");
     let ipv6 = SocketAddr::from(([0, 0, 0, 0, 0, 0, 0, 0], port));
-    let redis_url = env::var("REDIS_URL").unwrap_or_else(|_| "redis://127.0.0.1/".into());
     let s3_bucket = env::var("S3_BUCKET").unwrap_or_else(|_| "nekoi-assets".into());
     let access_key_id = env::var("AWS_ACCESS_KEY_ID").expect("Missing 'AWS_ACCESS_KEY_ID'");
     let secret_access_key =
@@ -63,8 +60,8 @@ async fn main() {
     let base_url = env::var("BASE_URL").unwrap_or_else(|_| "http://localhost:3030".into());
     let state = create_state(
         pool,
+        redis_client,
         base_url,
-        &redis_url,
         s3_bucket,
         access_key_id,
         secret_access_key,
