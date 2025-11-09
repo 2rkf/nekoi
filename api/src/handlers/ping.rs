@@ -23,16 +23,20 @@ pub async fn ping(
     if mysql_status && redis_status {
         Ok(Json(ApiResponse {
             id: None,
-            message: Some("Pong! MySQL and Redis are healthy.".into()),
+            message: Some("Health check passed: All services operational".into()),
             status: StatusCode::OK.as_u16(),
             success: true,
             url: None,
         }))
     } else {
-        let msg = format!(
-            "Pong, but issues detected: MySQL={}, Redis={}",
-            mysql_status, redis_status
-        );
+        let msg = if !mysql_status && !redis_status {
+            "Health check failed: MySQL and Redis connections unavailable"
+        } else if !mysql_status {
+            "Health check failed: MySQL connection unavailable"
+        } else {
+            "Health check failed: Redis connection unavailable"
+        }.to_string();
+
         Err((
             StatusCode::SERVICE_UNAVAILABLE,
             Json(ApiResponse {
