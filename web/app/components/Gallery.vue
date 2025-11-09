@@ -136,10 +136,11 @@ const image = ref({});
 const rateLimits = ref({});
 const selectedType = ref("sfw");
 const selectedCategory = ref("neko");
+const config = useAppConfig();
 
 const categories = {
-  sfw: ["anime", "azurlane", "ddlc", "kitsune", "maid", "neko", "nekopara"].sort(),
-  nsfw: ["azurlane", "cum", "lewd", "neko", "nekopara", "trap", "yuri", "petplay"].sort(),
+  sfw: config.SFW_CATEGORIES,
+  nsfw: config.NSFW_CATEGORIES,
 };
 
 const availableCategories = computed(() => categories[selectedType.value] || []);
